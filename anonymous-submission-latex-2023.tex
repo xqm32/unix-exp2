@@ -1,0 +1,212 @@
+%File: anonymous-submission-latex-2023.tex
+\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
+\usepackage[submission]{aaai23}  % DO NOT CHANGE THIS
+\usepackage{times}  % DO NOT CHANGE THIS
+\usepackage{helvet}  % DO NOT CHANGE THIS
+\usepackage{courier}  % DO NOT CHANGE THIS
+\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm}  % DO NOT CHANGE THIS
+\usepackage{natbib}  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\frenchspacing  % DO NOT CHANGE THIS
+\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THIS
+\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
+\usepackage{amsmath, amssymb, amscd, amsthm, amsfonts}
+%
+% These are recommended to typeset algorithms but not required. See the subsubsection on algorithms. Remove them if you don't have algorithms in your paper.
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+%
+% These are are recommended to typeset listings but not required. See the subsubsection on listing. Remove this block if you don't have listings in your paper.
+\usepackage{newfloat}
+\usepackage{listings}
+\DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
+\lstset{%
+	basicstyle={\footnotesize\ttfamily},% footnotesize acceptable for monospace
+	numbers=left,numberstyle=\footnotesize,xleftmargin=2em,% show line numbers, remove this entire line if you don't want the numbers.
+	aboveskip=0pt,belowskip=0pt,%
+	showstringspaces=false,tabsize=2,breaklines=true}
+\floatstyle{ruled}
+\newfloat{listing}{tb}{lst}{}
+\floatname{listing}{Listing}
+%
+% Keep the \pdfinfo as shown here. There's no need
+% for you to add the /Title and /Author tags.
+\pdfinfo{
+/TemplateVersion (2023.1)
+}
+
+% DISALLOWED PACKAGES
+% \usepackage{authblk} -- This package is specifically forbidden
+% \usepackage{balance} -- This package is specifically forbidden
+% \usepackage{color (if used in text)
+% \usepackage{CJK} -- This package is specifically forbidden
+% \usepackage{float} -- This package is specifically forbidden
+% \usepackage{flushend} -- This package is specifically forbidden
+% \usepackage{fontenc} -- This package is specifically forbidden
+% \usepackage{fullpage} -- This package is specifically forbidden
+% \usepackage{geometry} -- This package is specifically forbidden
+% \usepackage{grffile} -- This package is specifically forbidden
+% \usepackage{hyperref} -- This package is specifically forbidden
+% \usepackage{navigator} -- This package is specifically forbidden
+% (or any other package that embeds links such as navigator or hyperref)
+% \indentfirst} -- This package is specifically forbidden
+% \layout} -- This package is specifically forbidden
+% \multicol} -- This package is specifically forbidden
+% \nameref} -- This package is specifically forbidden
+% \usepackage{savetrees} -- This package is specifically forbidden
+% \usepackage{setspace} -- This package is specifically forbidden
+% \usepackage{stfloats} -- This package is specifically forbidden
+% \usepackage{tabu} -- This package is specifically forbidden
+% \usepackage{titlesec} -- This package is specifically forbidden
+% \usepackage{tocbibind} -- This package is specifically forbidden
+% \usepackage{ulem} -- This package is specifically forbidden
+% \usepackage{wrapfig} -- This package is specifically forbidden
+% DISALLOWED COMMANDS
+% \nocopyright -- Your paper will not be published if you use this command
+% \addtolength -- This command may not be used
+% \balance -- This command may not be used
+% \baselinestretch -- Your paper will not be published if you use this command
+% \clearpage -- No page breaks of any kind may be used for the final version of your paper
+% \columnsep -- This command may not be used
+% \newpage -- No page breaks of any kind may be used for the final version of your paper
+% \pagebreak -- No page breaks of any kind may be used for the final version of your paperr
+% \pagestyle -- This command may not be used
+% \tiny -- This is not an acceptable font size.
+% \vspace{- -- No negative value may be used in proximity of a caption, figure, table, section, subsection, subsubsection, or reference
+% \vskip{- -- No negative value may be used to alter spacing above or below a caption, figure, table, section, subsection, subsubsection, or reference
+
+\setcounter{secnumdepth}{0} %May be changed to 1 or 2 if section numbers are desired.
+
+% The file aaai23.sty is the style file for AAAI Press
+% proceedings, working notes, and technical reports.
+%
+
+% Title
+
+% Your title must be in mixed case, not sentence case.
+% That means all verbs (including short verbs like be, is, using,and go),
+% nouns, adverbs, adjectives should be capitalized, including both words in hyphenated terms, while
+% articles, conjunctions, and prepositions are lower case unless they
+% directly follow a colon or long dash
+\title{An Adaptive Incremental Gradient Method With Support for Non-Euclidean Norms}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Stochastic variance reduced methods have shown strong performance in solving finite-sum problems.
+%
+However, these methods usually require the users to manually tune the step-size, which is time-consuming or even infeasible for some large-scale optimization tasks.
+%
+To overcome the problem, we propose and analyze several novel adaptive variants of the popular SAGA algorithm.
+%
+Eventually, we design a variant of Barzilai-Borwein step-size which is tailored for the incremental gradient method to ensure memory efficiency and fast convergence. 
+%
+We establish its convergence guarantees under general settings that allow non-Euclidean norms in the definition of smoothness and the composite objectives, which cover a broad range of applications in machine learning.
+%
+We improve the analysis of SAGA to support non-Euclidean norms, which fills the void of existing work.
+%
+Numerical experiments on standard datasets demonstrate a competitive performance of the proposed algorithm compared with existing variance-reduced methods and their adaptive variants.
+\end{abstract}
+
+\section{Introduction}
+\label{s:section}
+Many machine learning tasks involve solving the following optimization problem with a finite-sum structure:
+\begin{equation}\label{problem1}
+    \min_{x \in \mathbb{R}^d} \ f(x): = \frac{1}{n}\sum_{i \in [n]}f_i(x),
+\end{equation}
+where $x\in \mathbb{R}^d$ is the model parameter, each $f_i: \mathbb{R}^d \rightarrow \mathbb{R}$ is a loss function for the $i$-th training sample and $[n]:= \{1,\dots,n\}$.
+%
+More generally, the ``composite'' (or proximal) case covers a larger range of applications in machine
+learning:
+\begin{equation}\label{Problem}
+    \min_{x \in \mathbb{R}^d} \ F(x) : = f(x) + h(x),
+\end{equation}
+where $h(\cdot): \mathbb{R}^d \rightarrow \mathbb{R}$ is a simple
+and convex (but possibly non-differentiable) function, and the proximal operation of $h(\cdot)$ is easy to compute. %— few adaptive gradient methods are applicable in this setting.
+%
+Here, we also define $F_i(x) = f_i(x) + h(x)$ and $\nabla F_i(x) = \nabla f_i(x)+ \partial h(x)$ where $\partial h(x)$ denotes a sub-gradient of $h(\cdot)$ at $x.$
+%
+Throughout the paper, we denote $x^*$ as an optimal solution of Problem (\ref{Problem}).
+
+However, when $n$ is very large, which is common in the modern learning tasks, gradient descent (GD) has a prohibitively high per-iteration cost.
+%
+%However, when $n$ is very large, GD has a prohibitively high per-iteration cost.
+%
+To mitigate the issue, stochastic gradient descent (SGD) \citep{10.1214/aoms/1177729586, DBLP:journals/siamjo/NemirovskiJLS09}, as an alternative, has been widely adopted to solve Problem (\ref{Problem}) in modern machine learning tasks.
+%
+Its simplest update process can be written as:
+\begin{equation*}
+    x_{k+1} = \arg \min_x \left\{\left\langle \widetilde{\nabla}_k, x \right\rangle  + \frac{1}{2\eta}\|x-x_k\|^2+ h(x)\right\},
+\end{equation*}
+where $\eta$ is the step-size, and the gradient estimator $\widetilde{\nabla}_k$ satisfies $\mathbb{E}[\widetilde{\nabla}_k] = \nabla f(x_k), \forall x \in \mathbb{R}^d$ to ensure the convergence.
+%
+The choice in SGD is to set $\widetilde{\nabla}_k=\nabla f_i(x)$.
+%
+However, due to the undiminishing variance $\mathbb{E}[\|\nabla f_i(x_k) - \nabla f(x_k) \|^2]$, SGD only converges at a sub-linear rate even if $F(\cdot)$ is strongly convex and smooth.
+
+\paragraph{Variance reduction.}
+%
+Recently, some stochastic variance reduced (VR) methods have been proposed to solve the variance issue of SGD, such as SAG \citep{DBLP:conf/nips/RouxSB12}, SAGA \citep{DBLP:conf/nips/DefazioBL14}, SVRG \citep{DBLP:conf/nips/Johnson013}, SARAH \citep{DBLP:conf/icml/NguyenLST17} and SVRG-Loopless \citep{DBLP:conf/alt/KovalevHR20}.
+%
+There are also several accelerated or generalized variants of these methods proposed these years, to list a few, \cite{DBLP:conf/nips/Defazio16,DBLP:journals/mp/GowerRB21,DBLP:journals/corr/abs-2006-11573,DBLP:conf/nips/ZhouSC20}.
+%
+The methods use better choices of the gradient estimator $\widetilde{\nabla}_k$ with its variance reducing as the algorithm converges.
+%
+Based on this property, in theory, VR methods only need $\mathcal{O}((n+\kappa)\log(\frac{1}{\epsilon}))$ stochastic gradient evaluations to satisfy $\mathbb{E}[\|\nabla f(x) \|^2] \leq \epsilon$ or $\mathbb{E}[f(x)] - f(x^*) \leq \epsilon$, while GD typically needs $\mathcal{O}(n\kappa \log(\frac{1}{\epsilon}))$ evaluations and SGD requires $\mathcal{O}(\frac{1}{\mu\epsilon})$ complexity.
+%
+
+Consequently, VR methods are commonly used in practice, especially for convex problems such as logistic regression \citep{DBLP:journals/corr/abs-2102-09645}.
+%
+However, all the VR methods above require a constant step-size, which depends on the characteristics of Problem (\ref{Problem}), such as the smoothness constant.
+%
+In practice, these constants are often difficult to estimate.
+%
+In general, researchers adopt a computationally expensive grid-search method to find a step-size.
+%
+%Besides such a computational cost, a 
+Yet such constant step-sizes might lead to poor empirical performance.
+
+\paragraph{Adaptive VR methods.}
+Consequently, researchers have also proposed some adaptive VR methods to address the issue in recent years.
+%
+\citet{DBLP:conf/nips/TanMDQ16} proposed SVRG-BB based on Barzilai-Borwein (BB) step-size \citep{barzilai1988two} and derived SGD-BB and SAG-BB as heuristics.
+%
+\citet{c:21} developed SVRG-AS and SARAH-AS.
+%
+Although the methods mentioned above are capable of automatically changing step-size, they still introduce additional hard-to-tune hyperparameters.
+%
+\citet{DBLP:conf/icml/LiWG20} designed another variants of SVRG-BB and SARAH-BB given the knowledge of some problem-dependent constants.
+%
+More recently, \citet{DBLP:journals/corr/abs-2102-09645} proposed AdaSVRG for convex objectives, which extends the adaptive step-size in AdaGrad to SVRG's inner loop.
+%
+However, the theoretical analysis of AdaSVRG requires a bounded domain, and thus the algorithm needs to perform projection in each iteration, which is rarely the case in machine learning tasks.
+%
+\citet{DBLP:journals/corr/abs-2102-09700} emphasized the importance of adapting to the local geometry and proposed an implicit adaptive strategy for SARAH (AI-SARAH).
+%
+However, AI-SARAH requires solving a sub-problem in each iteration, which could be expensive for general objective functions other than linear regressions.
+
+In addition, most of the adaptive VR methods above are limited to solve Problem (\ref{problem1}) either in the convex setting or in the strongly convex setting.
+%
+That is, AdaSVRG is only analyzed in the convex case, and other methods are analyzed in the strongly convex case.
+%
+To the best of our knowledge, all the known adaptive VR methods and variants of SAGA do not work with a non-Euclidean norm in the definition of smoothness.
+%
+However, allowing arbitrary norms contribute to wide applications in many areas of computer science \citep{allen2014linear}.
+
+Although a considerable amount of work has been done for adaptive SVRG and SARAH, another stochastic variance reduction method, SAGA, does not have any adaptive variant. 
+%
+SAGA, which is free of inner loop length tuning and usually has a better practical performance compared with SVRG, has been implemented in the scikit-learn package \citep{scikit-learn} (while SVRG and SARAH have not been) to solve linear regression tasks.
+%
+Therefore, an adaptive variant of SAGA is of great interest.
+
+\bibliography{references} 
+
+\bigskip
+
+\end{document}
